@@ -8,11 +8,16 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using InvoiceGeneratorAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+//using Microsoft.Office.Interop.Excel;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Web.CodeGeneration.Design;
 
-
-using Microsoft.Office.Interop.Excel;
-using System.Runtime.InteropServices;
+//using Microsoft.Office.Interop.Excel;
+//using System.Runtime.InteropServices;
+//using Microsoft.Extensions.Hosting;
+//using System.Collections.Generic;
 //using Microsoft.AspNetCore.Cors;
+
 
 
 namespace InvoiceGeneratorAPI.Controllers
@@ -48,7 +53,7 @@ namespace InvoiceGeneratorAPI.Controllers
         {
             long invoiceId = invoiceGeneration.invoiceId;
             long invoiceTemplateId = invoiceGeneration.invoiceTemplateId;
-            //find the invoice data
+            
             if (_invoiceContext.Invoice == null || _invoiceTemplateContext.InvoiceTemplates == null)
             {
                 return NotFound();
@@ -64,7 +69,8 @@ namespace InvoiceGeneratorAPI.Controllers
             var src = invoiceTemplate.templatePath;
             var dest = "C:\\Users\\agmag\\Documents\\PDFSavesDoc\\Invoice.pdf";
             GenerateInvoiceByTemplate(src, dest, invoice, invoiceTemplate);
-            SavePDF(src, invoiceId);
+            //SavePDF(src, "C:\\Users\\agmag\\Documents\\PDFSavesDoc",  invoiceId);
+            //SavePDF(src, invoiceId);
             return Ok();
         }
        
@@ -137,29 +143,79 @@ namespace InvoiceGeneratorAPI.Controllers
 
 
         }
+        private void SavePDF(string excelPath, string pdfPath, long invoiceId)
+        {
+            pdfPath = Path.Combine(pdfPath, $"{invoiceId}.pdf");
 
-        private void SavePDF(string excelFilePath, long invoiceId)
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = @"C:\Program Files\LibreOffice\program\soffice.exe",
+                Arguments = $"--convert-to pdf --outdir {Path.GetDirectoryName(pdfPath)} {excelPath}",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new Process { StartInfo = startInfo })
+            {
+                process.Start();
+                process.WaitForExit();
+            }
+        }
+        /*private void SavePDF(string worksheet, string pdfFilePath, long invoiceId)
+        {
+
+            using (var package = new ExcelPackage())
+            {
+                package.Workbook.Worksheets.Add(worksheet);
+
+                string newPDF = Path.Combine(pdfFilePath, $"{invoiceId}.pdf");
+
+                using (var pdfFile = new FileStream(newPDF, FileMode.Create, FileAccess.Write))
+                {
+                    package.SaveAs(pdfFile);
+                }
+            }
+        }*/
+
+        /*private void SavePDF(string excelFilePath, long invoiceId)
             {
             Application excel = new Application();
             Workbook workbook = excel.Workbooks.Open(excelFilePath);
-
-            // Assuming you want to convert the first worksheet
             Worksheet worksheet = (Worksheet)workbook.Sheets[1];
-
-            // Generate a unique PDF file name based on a timestamp
             string pdfDirectory = @"C:\Users\agmag\Documents\PDFSavesDoc";
-
-            // Generate a unique PDF file name based on a timestamp and concatenate it with the directory
             string pdfFilePath = Path.Combine(pdfDirectory, "Invoice-" + invoiceId + ".pdf");
-
-            // Use the full path when exporting the Excel worksheet to the PDF file
             worksheet.ExportAsFixedFormat(XlFixedFormatType.xlTypePDF, pdfFilePath);
 
             workbook.Close(false);
             Marshal.ReleaseComObject(workbook);
             excel.Quit();
             Marshal.ReleaseComObject(excel);
-        }
+        }*/
+
+
+        /*public void SaveMyPDF(string excelPath, string pdfPath, long invoiceId)
+           {
+            pdfPath = Path.Combine(pdfPath, $"{invoiceId}.pdf");
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "soffice", // The path to the LibreOffice executable
+                Arguments = $"--convert-to pdf --outdir {Path.GetDirectoryName(pdfPath)} {excelPath}",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new Process { StartInfo = startInfo })
+            {
+                process.Start();
+                process.WaitForExit();
+            }
+        }*/
+
 
     }
 }

@@ -37,7 +37,7 @@ namespace InvoiceGeneratorAPI.Models
         public string? shipDateCell { get; set; }
         public string? productTypeCell { get; set; }
 
-        //Item cell Info
+        //Item cell Info (will need to create multiple items)
         public string? itemIdCell { get; set; }
         public string? itemQuantityCell { get; set; }
         public string? itemSizeCell { get; set; }
